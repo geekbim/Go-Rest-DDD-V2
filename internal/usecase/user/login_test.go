@@ -22,40 +22,35 @@ func TestLogin(t *testing.T) {
 	user.Password = "qweasd123"
 	user1 := testdata.NewUser(userDTO)
 
-	userRepo.
-		On("FindUserByEmail", mock.Anything, user.Email).
-		Return(user1, nil)
-
-	useCase := user_usecase.NewUserInteractor(userRepo)
-
-	res, err := useCase.Login(ctx, user)
-
-	assert.Nil(t, err)
-	assert.Equal(t, user.Email, res.Email)
-	assert.Equal(t, user1.Password, res.Password)
-}
-
-func TestLoginErr(t *testing.T) {
-	ctx := context.TODO()
-
-	userRepo := new(mocks.UserRepositoryMock)
-
-	userDTO := testdata.NewUserDTO()
-	user := testdata.NewUser(userDTO)
-
-	err := errors.New("account not found")
+	err := errors.New("error")
 	expectedErr := []error{
 		err,
 	}
 
 	userRepo.
 		On("FindUserByEmail", mock.Anything, user.Email).
-		Return(user, err)
+		Return(user1, nil).
+		Once()
+	userRepo.
+		On("FindUserByEmail", mock.Anything, user.Email).
+		Return(user, err).
+		Once()
 
-	useCase := user_usecase.NewUserInteractor(userRepo)
+	t.Run("OK", func(t *testing.T) {
+		useCase := user_usecase.NewUserInteractor(userRepo)
 
-	res, errUseCase := useCase.Login(ctx, user)
+		res, errUseCase := useCase.Login(ctx, user)
 
-	assert.Nil(t, res)
-	assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+		assert.Nil(t, errUseCase)
+		assert.Equal(t, user.Email, res.Email)
+		assert.Equal(t, user1.Password, res.Password)
+	})
+	t.Run("ErrFindUser", func(t *testing.T) {
+		useCase := user_usecase.NewUserInteractor(userRepo)
+
+		res, errUseCase := useCase.Login(ctx, user)
+
+		assert.Nil(t, res)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
 }
