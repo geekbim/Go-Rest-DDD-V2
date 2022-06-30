@@ -3,7 +3,7 @@ package entity_test
 import (
 	"errors"
 	"gokomodo/domain/entity"
-	"gokomodo/testdata"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

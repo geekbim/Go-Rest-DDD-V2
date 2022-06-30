@@ -2,7 +2,7 @@ package mapper_test
 
 import (
 	"gokomodo/internal/repository/psql/mapper"
-	"gokomodo/testdata"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -4,7 +4,7 @@ import (
 	"gokomodo/domain/entity"
 	"gokomodo/internal/repository/psql/mapper"
 	"gokomodo/internal/repository/psql/models"
-	"gokomodo/testdata"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

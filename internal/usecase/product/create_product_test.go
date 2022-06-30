@@ -3,9 +3,9 @@ package product_test
 import (
 	"context"
 	"errors"
-	"gokomodo/internal/mocks"
 	product_usecase "gokomodo/internal/usecase/product"
-	"gokomodo/testdata"
+	"gokomodo/mocks"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 func TestCreateProduct(t *testing.T) {
 	ctx := context.TODO()
 
-	productRepo := new(mocks.ProductRepositoryMock)
+	productRepo := new(mocks.ProductRepository)
 
 	productDTO := testdata.NewProductDTO()
 	product := testdata.NewProduct(productDTO)

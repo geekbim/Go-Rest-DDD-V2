@@ -5,7 +5,7 @@ import (
 	"gokomodo/domain/entity"
 	"gokomodo/domain/valueobject"
 	"gokomodo/pkg/common"
-	"gokomodo/testdata"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

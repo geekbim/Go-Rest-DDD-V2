@@ -3,9 +3,9 @@ package user_test
 import (
 	"context"
 	"errors"
-	"gokomodo/internal/mocks"
 	user_usecase "gokomodo/internal/usecase/user"
-	"gokomodo/testdata"
+	"gokomodo/mocks"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 func TestLogin(t *testing.T) {
 	ctx := context.TODO()
 
-	userRepo := new(mocks.UserRepositoryMock)
+	userRepo := new(mocks.UserRepository)
 
 	userDTO := testdata.NewUserDTO()
 	user := testdata.NewUser(userDTO)

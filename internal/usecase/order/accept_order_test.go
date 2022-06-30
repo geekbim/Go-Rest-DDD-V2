@@ -3,9 +3,9 @@ package order_test
 import (
 	"context"
 	"errors"
-	"gokomodo/internal/mocks"
 	order_usecase "gokomodo/internal/usecase/order"
-	"gokomodo/testdata"
+	"gokomodo/mocks"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 func TestAcceptOrder(t *testing.T) {
 	ctx := context.TODO()
 
-	orderRepo := new(mocks.OrderRepositoryMock)
+	orderRepo := new(mocks.OrderRepository)
 
 	orderDTO := testdata.NewOrderDTO()
 	order := testdata.NewOrder(orderDTO)

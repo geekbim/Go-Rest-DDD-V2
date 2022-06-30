@@ -3,7 +3,7 @@ package response_test
 import (
 	"gokomodo/domain/entity"
 	"gokomodo/internal/delivery/response"
-	"gokomodo/testdata"
+	"gokomodo/test/testdata"
 	"testing"
 
 	"github.com/go-playground/assert/v2"
