@@ -20,6 +20,10 @@
 ```sh
     sh run-migration.sh
 ```
+### Generate Mock
+```sh
+    mockery --all --case underscore
+```
 
 ### Run Test
 ```sh
