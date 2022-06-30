@@ -20,39 +20,35 @@ func TestCreateProduct(t *testing.T) {
 	productDTO := testdata.NewProductDTO()
 	product := testdata.NewProduct(productDTO)
 
-	productRepo.
-		On("StoreProduct", mock.Anything, product).
-		Return(nil)
-
-	useCase := product_usecase.NewProductInteractor(productRepo)
-
-	res, err := useCase.CreateProduct(ctx, product)
-
-	assert.Nil(t, err)
-	assert.Equal(t, product, res)
-}
-
-func TestCreateProductErr(t *testing.T) {
-	ctx := context.TODO()
-
-	productRepo := new(mocks.ProductRepositoryMock)
-
-	productDTO := testdata.NewProductDTO()
-	product := testdata.NewProduct(productDTO)
-
-	err := errors.New("error create product")
+	err := errors.New("error")
 	expectedErr := []error{
 		err,
 	}
 
 	productRepo.
 		On("StoreProduct", mock.Anything, product).
-		Return(err)
+		Return(nil).
+		Once()
+	productRepo.
+		On("StoreProduct", mock.Anything, product).
+		Return(err).
+		Once()
 
-	useCase := product_usecase.NewProductInteractor(productRepo)
+	t.Run("OK", func(t *testing.T) {
+		useCase := product_usecase.NewProductInteractor(productRepo)
 
-	res, errUseCase := useCase.CreateProduct(ctx, product)
+		res, errUseCase := useCase.CreateProduct(ctx, product)
 
-	assert.Nil(t, res)
-	assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+		assert.Nil(t, errUseCase)
+		assert.Equal(t, product, res)
+	})
+
+	t.Run("ErrorStoreProduct", func(t *testing.T) {
+		useCase := product_usecase.NewProductInteractor(productRepo)
+
+		res, errUseCase := useCase.CreateProduct(ctx, product)
+
+		assert.Nil(t, res)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
 }

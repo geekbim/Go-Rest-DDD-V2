@@ -22,14 +22,45 @@ func TestListOrder(t *testing.T) {
 	order := testdata.NewOrder(orderDTO)
 	orders := []*entity.Order{order}
 
-	t.Run("ListOrderSeller", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(orders, nil)
-		orderRepo.
-			On("CountOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(int32(len(orders)), nil)
+	err := errors.New("error")
+	expectedErr := []error{
+		err,
+	}
 
+	orderRepo.
+		On("GetOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
+		Return(orders, nil).
+		Twice()
+	orderRepo.
+		On("CountOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
+		Return(int32(len(orders)), nil).
+		Once()
+	orderRepo.
+		On("GetOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
+		Return(orders, nil).
+		Twice()
+	orderRepo.
+		On("CountOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
+		Return(int32(len(orders)), nil).
+		Once()
+	orderRepo.
+		On("CountOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
+		Return(int32(0), err).
+		Once()
+	orderRepo.
+		On("GetOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
+		Return(orders, err).
+		Once()
+	orderRepo.
+		On("CountOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
+		Return(int32(0), err).
+		Once()
+	orderRepo.
+		On("GetOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
+		Return(orders, err).
+		Once()
+
+	t.Run("ListOrderSeller", func(t *testing.T) {
 		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
 		res, count, err := useCase.ListOrder(ctx, order.Seller.Id, "SELLER", nil)
@@ -40,13 +71,6 @@ func TestListOrder(t *testing.T) {
 	})
 
 	t.Run("ListOrderBuyer", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(orders, nil)
-		orderRepo.
-			On("CountOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(int32(len(orders)), nil)
-
 		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
 		res, count, err := useCase.ListOrder(ctx, order.Buyer.Id, "BUYER", nil)
@@ -55,30 +79,23 @@ func TestListOrder(t *testing.T) {
 		assert.Equal(t, orders, res)
 		assert.Equal(t, int32(len(orders)), count)
 	})
-}
 
-func TestListOrderErrCount(t *testing.T) {
-	ctx := context.TODO()
+	t.Run("ErrorRole", func(t *testing.T) {
+		err := errors.New("role not found")
+		expectedErr := []error{
+			err,
+		}
 
-	orderRepo := new(mocks.OrderRepositoryMock)
+		useCase := order_usecase.NewOrderInteractor(nil, nil)
 
-	orderDTO := testdata.NewOrderDTO()
-	order := testdata.NewOrder(orderDTO)
-	orders := []*entity.Order{order}
+		res, count, errUseCase := useCase.ListOrder(ctx, order.Seller.Id, "GUEST", nil)
 
-	err := errors.New("error count order")
-	expectedErr := []error{
-		err,
-	}
+		assert.Nil(t, res)
+		assert.Equal(t, int32(0), count)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
 
-	t.Run("ListOrderSellerErrCount", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(orders, nil)
-		orderRepo.
-			On("CountOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(int32(len(orders)), err)
-
+	t.Run("ErrorCountOrderSeller", func(t *testing.T) {
 		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
 		res, count, errUseCase := useCase.ListOrder(ctx, order.Seller.Id, "SELLER", nil)
@@ -88,46 +105,7 @@ func TestListOrderErrCount(t *testing.T) {
 		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
 	})
 
-	t.Run("ListOrderBuyerErrCount", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(orders, nil)
-		orderRepo.
-			On("CountOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(int32(len(orders)), err)
-
-		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
-
-		res, count, errUseCase := useCase.ListOrder(ctx, order.Buyer.Id, "BUYER", nil)
-
-		assert.Nil(t, res)
-		assert.Equal(t, int32(0), count)
-		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
-	})
-}
-
-func TestListOrderErrGet(t *testing.T) {
-	ctx := context.TODO()
-
-	orderRepo := new(mocks.OrderRepositoryMock)
-
-	orderDTO := testdata.NewOrderDTO()
-	order := testdata.NewOrder(orderDTO)
-	orders := []*entity.Order{order}
-
-	err := errors.New("error get order")
-	expectedErr := []error{
-		err,
-	}
-
-	t.Run("ListOrderSellerErrCount", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(orders, err)
-		orderRepo.
-			On("CountOrderSeller", mock.Anything, order.Seller.Id, mock.Anything).
-			Return(int32(len(orders)), nil)
-
+	t.Run("ErrorGetOrderSeller", func(t *testing.T) {
 		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
 		res, count, errUseCase := useCase.ListOrder(ctx, order.Seller.Id, "SELLER", nil)
@@ -137,14 +115,7 @@ func TestListOrderErrGet(t *testing.T) {
 		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
 	})
 
-	t.Run("ListOrderBuyerErrCount", func(t *testing.T) {
-		orderRepo.
-			On("GetOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(orders, err)
-		orderRepo.
-			On("CountOrderBuyer", mock.Anything, order.Buyer.Id, mock.Anything).
-			Return(int32(len(orders)), nil)
-
+	t.Run("ErrorCountOrderBuyer", func(t *testing.T) {
 		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
 		res, count, errUseCase := useCase.ListOrder(ctx, order.Buyer.Id, "BUYER", nil)
@@ -153,24 +124,14 @@ func TestListOrderErrGet(t *testing.T) {
 		assert.Equal(t, int32(0), count)
 		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
 	})
-}
 
-func TestListOrderErrRole(t *testing.T) {
-	ctx := context.TODO()
+	t.Run("ErrorGetOrderBuyer", func(t *testing.T) {
+		useCase := order_usecase.NewOrderInteractor(orderRepo, nil)
 
-	orderDTO := testdata.NewOrderDTO()
-	order := testdata.NewOrder(orderDTO)
+		res, count, errUseCase := useCase.ListOrder(ctx, order.Buyer.Id, "BUYER", nil)
 
-	err := errors.New("role not found")
-	expectedErr := []error{
-		err,
-	}
-
-	useCase := order_usecase.NewOrderInteractor(nil, nil)
-
-	res, count, errUseCase := useCase.ListOrder(ctx, order.Seller.Id, "GUEST", nil)
-
-	assert.Nil(t, res)
-	assert.Equal(t, int32(0), count)
-	assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+		assert.Nil(t, res)
+		assert.Equal(t, int32(0), count)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
 }

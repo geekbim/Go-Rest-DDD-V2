@@ -45,7 +45,8 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Email, res.Email)
 		assert.Equal(t, user1.Password, res.Password)
 	})
-	t.Run("ErrFindUser", func(t *testing.T) {
+
+	t.Run("ErrorFindUser", func(t *testing.T) {
 		useCase := user_usecase.NewUserInteractor(userRepo)
 
 		res, errUseCase := useCase.Login(ctx, user)

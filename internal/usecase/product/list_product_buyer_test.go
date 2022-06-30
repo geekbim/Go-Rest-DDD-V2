@@ -22,86 +22,53 @@ func TestListProductBuyer(t *testing.T) {
 	product := testdata.NewProduct(productDTO)
 	products := []*entity.Product{product}
 
-	productRepo.
-		On("GetProduct", mock.Anything, mock.Anything).
-		Return(products, nil)
-	productRepo.
-		On("CountProduct", mock.Anything, mock.Anything).
-		Return(int32(len(products)), nil)
-
-	useCase := product_usecase.NewProductInteractor(productRepo)
-
-	res, count, err := useCase.ListProductBuyer(ctx, nil)
-
-	assert.Nil(t, err)
-	assert.Equal(t, products, res)
-	assert.Equal(t, int32(len(products)), count)
-}
-
-func TestListProductBuyerErrCount(t *testing.T) {
-	ctx := context.TODO()
-
-	productRepo := new(mocks.ProductRepositoryMock)
-
-	productDTO := testdata.NewProductDTO()
-	product := testdata.NewProduct(productDTO)
-	products := []*entity.Product{product}
-
-	err := errors.New("error count product")
+	err := errors.New("error")
 	expectedErr := []error{
 		err,
 	}
 
 	productRepo.
 		On("GetProduct", mock.Anything, mock.Anything).
-		Return(products, nil)
+		Return(products, nil).
+		Twice()
 	productRepo.
 		On("CountProduct", mock.Anything, mock.Anything).
-		Return(int32(0), err)
-
-	productRepo.
-		On("StoreProduct", mock.Anything, product).
-		Return(err)
-
-	useCase := product_usecase.NewProductInteractor(productRepo)
-
-	res, count, errUseCase := useCase.ListProductBuyer(ctx, nil)
-
-	assert.Nil(t, res)
-	assert.Equal(t, int32(0), count)
-	assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
-}
-
-func TestListProductBuyerErrGet(t *testing.T) {
-	ctx := context.TODO()
-
-	productRepo := new(mocks.ProductRepositoryMock)
-
-	productDTO := testdata.NewProductDTO()
-	product := testdata.NewProduct(productDTO)
-	products := []*entity.Product{product}
-
-	err := errors.New("error get product")
-	expectedErr := []error{
-		err,
-	}
-
+		Return(int32(len(products)), nil).
+		Once()
 	productRepo.
 		On("GetProduct", mock.Anything, mock.Anything).
-		Return(products, err)
+		Return(products, err).
+		Once()
 	productRepo.
 		On("CountProduct", mock.Anything, mock.Anything).
-		Return(int32(0), nil)
+		Return(int32(0), err).
+		Twice()
 
-	productRepo.
-		On("StoreProduct", mock.Anything, product).
-		Return(err)
+	t.Run("OK", func(t *testing.T) {
+		useCase := product_usecase.NewProductInteractor(productRepo)
 
-	useCase := product_usecase.NewProductInteractor(productRepo)
+		res, count, err := useCase.ListProductBuyer(ctx, nil)
 
-	res, count, errUseCase := useCase.ListProductBuyer(ctx, nil)
+		assert.Nil(t, err)
+		assert.Equal(t, products, res)
+		assert.Equal(t, int32(len(products)), count)
+	})
+	t.Run("ErrorGetProduct", func(t *testing.T) {
+		useCase := product_usecase.NewProductInteractor(productRepo)
 
-	assert.Nil(t, res)
-	assert.Equal(t, int32(0), count)
-	assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+		res, count, errUseCase := useCase.ListProductBuyer(ctx, nil)
+
+		assert.Nil(t, res)
+		assert.Equal(t, int32(0), count)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
+	t.Run("ErrorCountProduct", func(t *testing.T) {
+		useCase := product_usecase.NewProductInteractor(productRepo)
+
+		res, count, errUseCase := useCase.ListProductBuyer(ctx, nil)
+
+		assert.Nil(t, res)
+		assert.Equal(t, int32(0), count)
+		assert.Equal(t, expectedErr, errUseCase.Errors.Errors)
+	})
 }
